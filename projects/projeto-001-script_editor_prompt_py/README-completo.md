@@ -98,7 +98,7 @@ Durante o desenvolvimento, foram explorados prompts do tipo:
 - Implementou mensagens de status amigáveis.
 
 ## 📸 Demonstrações e Resultados
-*(Inclua aqui prints do aplicativo rodando — especialmente antes/depois da substituição.)*
+*Ver printscreen na pasta /resultados*
 
 Sugestão de conteúdo:
 - Interface após carregar o arquivo.
