@@ -34,6 +34,7 @@ Aqui você encontrará desde pequenos experimentos até projetos completos, todo
 │   │   └── resultados/        → Prints, gráficos, outputs
 │   └── ...
 ├── /resources                 → Materiais extras
+│   ├── template-de-projeto/   → Explore para entender a estrutura interna de um projeto
 │   ├── guias/
 │   ├── artigos-recomendados.md
 │   └── ferramentas.md
