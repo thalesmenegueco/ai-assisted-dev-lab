@@ -43,7 +43,7 @@ Processo interno:
    - OU fallback por SO (`clip`, `pbcopy`, `xclip/xsel`).  
 
 ## 🧠 Tecnologias Utilizadas
-- **Linguagem:** Python 3.x  
+- **Linguagem:** Python 3.12
 - **Bibliotecas padrão:** Tkinter, re, subprocess  
 - **Biblioteca opcional:** pyperclip (clipboard)  
 - **Ferramentas de IA:** modelo utilizado no chat para criação + iteração  

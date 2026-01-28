@@ -2,6 +2,7 @@
 Gerar um script em Python para editar prompts.
 
 🧠 Prompt Completo
+```
 Funcionalidades:
 
 - Um botão 'Escolher arquivo' para escolher um arquivo de onde será extraído o texto do prompt.
@@ -27,7 +28,7 @@ Dados:
 - Se o texto tiver duas vezes o mesmo nome dentro de dois ou mais '{}', o app deve criar apenas um que preencha ambos. Exemplo: para o texto "Meu nome é {Nome}. Meu nome completo é {Nome} {Sobrenome}", no campo "Nome" é digitado "Matheus" e no campo "Sobrenome" é digitado "Barbosa", depois de apertado o botão 'Aplicar' o texto no campo ficará "Meu nome é Matheus. Meu nome completo é Matheus Barbosa"
 - O texto original do prompt será retirado de um arquivo .txt dentro do próprio computador.
 - O aplicativo não deve alterar o arquivo .txt original.
-
+```
 
 🤖 Modelo Utilizado
 - Modelo: DeekSeek V3.2
@@ -36,7 +37,7 @@ Dados:
 - nenhum contexto
 
 🔄 Iterações
-1. Versão 1 (script quase perfeitamente funcional)
+1. Versão 1 (script quase perfeitamente funcional) -> ESTE PROMPT
 2. Versão 2 (fazer uma versão onde seja possível copiar o texto gerado)
 
 💡 Insights e Aprendizados
