@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grid Colorível com Exportação PNG</title>
+
+  <!-- Biblioteca madura e amplamente usada para exportar DOM como imagem -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --border: #d9e0ea;
+      --text: #1d2433;
+      --muted: #667085;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --square-size: 24px;
+      --gap: 2px;
+      --radius: 12px;
+      --shadow: 0 8px 24px rgba(16, 24, 40, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .app {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      gap: 20px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .toolbar {
+      padding: 20px;
+    }
+
+    .toolbar h1 {
+      margin: 0 0 8px;
+      font-size: 1.6rem;
+    }
+
+    .toolbar p {
+      margin: 0 0 18px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 14px;
+      align-items: end;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 0.92rem;
+      font-weight: bold;
+    }
+
+    .field input,
+    .field select,
+    .field button {
+      min-height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      background: #fff;
+    }
+
+    .field input[type="color"] {
+      padding: 4px;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border: 1px solid var(--primary);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background: #fff;
+      color: var(--text);
+    }
+
+    .workspace {
+      padding: 20px;
+      overflow: auto;
+    }
+
+    .grid-stage {
+      display: inline-block;
+      background: #fff;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      min-width: 100%;
+    }
+
+    .grid {
+      display: flex;
+      flex-direction: column;
+      gap: var(--gap);
+      width: max-content;
+    }
+
+    .grid-row {
+      display: flex;
+      gap: var(--gap);
+    }
+
+    .grid-row.brick-offset {
+      margin-left: calc(var(--square-size) / 2);
+    }
+
+    .square {
+      width: var(--square-size);
+      height: var(--square-size);
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      cursor: pointer;
+      transition: transform 0.08s ease, opacity 0.15s ease;
+      user-select: none;
+    }
+
+    .square:hover {
+      opacity: 0.88;
+      transform: scale(0.97);
+    }
+
+    .legend {
+      padding: 0 20px 20px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 14px;
+      }
+
+      .toolbar,
+      .workspace {
+        padding: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="panel toolbar">
+      <h1>Grid Colorível</h1>
+      <p>
+        Monte uma grade de quadrados, alterne entre os layouts <strong>planilha</strong> e
+        <strong>tijolos</strong>, pinte clicando nos quadrados e exporte o resultado em PNG.
+      </p>
+
+      <div class="controls">
+        <div class="field">
+          <label for="rows">Linhas</label>
+          <input id="rows" type="number" min="1" max="100" value="12" />
+        </div>
+
+        <div class="field">
+          <label for="cols">Colunas</label>
+          <input id="cols" type="number" min="1" max="100" value="16" />
+        </div>
+
+        <div class="field">
+          <label for="squareSize">Tamanho do quadrado</label>
+          <input id="squareSize" type="number" min="8" max="80" value="24" />
+        </div>
+
+        <div class="field">
+          <label for="layoutType">Tipo de layout</label>
+          <select id="layoutType">
+            <option value="grid">Linhas e colunas</option>
+            <option value="brick">Tijolos</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="selectedColor">Cor selecionada</label>
+          <input id="selectedColor" type="color" value="#2563eb" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="buildGridBtn" class="btn-primary">Gerar grade</button>
+        <button id="clearGridBtn" class="btn-secondary">Limpar cores</button>
+        <button id="exportPngBtn" class="btn-secondary">Exportar PNG</button>
+      </div>
+    </section>
+
+    <section class="panel workspace">
+      <div id="gridStage" class="grid-stage">
+        <div id="grid" class="grid" aria-label="Grid colorível"></div>
+      </div>
+    </section>
+
+    <section class="legend">
+      <strong>Biblioteca usada:</strong> html2canvas para exportação em PNG.
+      O restante foi implementado em JavaScript moderno puro para maximizar compatibilidade.
+    </section>
+  </main>
+
+  <script>
+    const LayoutTypes = Object.freeze({
+      GRID: 'grid',
+      BRICK: 'brick'
+    });
+
+    const DEFAULT_CELL_COLOR = '#ffffff';
+
+    const createMatrix = (rows, cols, initialValueFactory) =>
+      Array.from({ length: rows }, () =>
+        Array.from({ length: cols }, () => initialValueFactory())
+      );
+
+    const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+    const toInteger = (value, fallback) => {
+      const parsed = Number.parseInt(value, 10);
+      return Number.isNaN(parsed) ? fallback : parsed;
+    };
+
+    const createInitialState = () => ({
+      rows: 12,
+      cols: 16,
+      squareSize: 24,
+      layout: LayoutTypes.GRID,
+      selectedColor: '#2563eb',
+      cells: createMatrix(12, 16, () => DEFAULT_CELL_COLOR)
+    });
+
+    const createGridCells = (rows, cols) =>
+      createMatrix(rows, cols, () => DEFAULT_CELL_COLOR);
+
+    const paintCell = (cells, rowIndex, colIndex, color) =>
+      cells.map((row, r) =>
+        row.map((cell, c) => {
+          if (r === rowIndex && c === colIndex) {
+            return color;
+          }
+          return cell;
+        })
+      );
+
+    const clearCells = (cells) =>
+      cells.map(row => row.map(() => DEFAULT_CELL_COLOR));
+
+    const buildStateFromControls = currentState => {
+      const rows = clamp(toInteger(elements.rows.value, currentState.rows), 1, 100);
+      const cols = clamp(toInteger(elements.cols.value, currentState.cols), 1, 100);
+      const squareSize = clamp(
+        toInteger(elements.squareSize.value, currentState.squareSize),
+        8,
+        80
+      );
+      const layout = elements.layoutType.value === LayoutTypes.BRICK
+        ? LayoutTypes.BRICK
+        : LayoutTypes.GRID;
+
+      return {
+        ...currentState,
+        rows,
+        cols,
+        squareSize,
+        layout,
+        selectedColor: elements.selectedColor.value,
+        cells: createGridCells(rows, cols)
+      };
+    };
+
+    const updateSelectedColor = (state, color) => ({
+      ...state,
+      selectedColor: color
+    });
+
+    const updateLayout = (state, layout) => ({
+      ...state,
+      layout
+    });
+
+    const updateSquareSize = (state, squareSize) => ({
+      ...state,
+      squareSize
+    });
+
+    const createCellElement = (rowIndex, colIndex, color) => {
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      cell.className = 'square';
+      cell.dataset.row = String(rowIndex);
+      cell.dataset.col = String(colIndex);
+      cell.style.backgroundColor = color;
+      cell.setAttribute('aria-label', `Quadrado ${rowIndex + 1}-${colIndex + 1}`);
+      return cell;
+    };
+
+    const createRowElement = (rowIndex, layout) => {
+      const row = document.createElement('div');
+      row.className = 'grid-row';
+
+      if (layout === LayoutTypes.BRICK && rowIndex % 2 === 1) {
+        row.classList.add('brick-offset');
+      }
+
+      return row;
+    };
+
+    const renderGrid = state => {
+      document.documentElement.style.setProperty('--square-size', `${state.squareSize}px`);
+
+      const fragment = document.createDocumentFragment();
+
+      state.cells.forEach((row, rowIndex) => {
+        const rowElement = createRowElement(rowIndex, state.layout);
+
+        row.forEach((color, colIndex) => {
+          rowElement.appendChild(createCellElement(rowIndex, colIndex, color));
+        });
+
+        fragment.appendChild(rowElement);
+      });
+
+      elements.grid.innerHTML = '';
+      elements.grid.appendChild(fragment);
+    };
+
+    const exportGridAsPng = async () => {
+      const canvas = await html2canvas(elements.gridStage, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true
+      });
+
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = 'grid-colorido.png';
+      link.click();
+    };
+
+    const elements = {
+      rows: document.getElementById('rows'),
+      cols: document.getElementById('cols'),
+      squareSize: document.getElementById('squareSize'),
+      layoutType: document.getElementById('layoutType'),
+      selectedColor: document.getElementById('selectedColor'),
+      buildGridBtn: document.getElementById('buildGridBtn'),
+      clearGridBtn: document.getElementById('clearGridBtn'),
+      exportPngBtn: document.getElementById('exportPngBtn'),
+      gridStage: document.getElementById('gridStage'),
+      grid: document.getElementById('grid')
+    };
+
+    let state = createInitialState();
+
+    const refresh = () => {
+      renderGrid(state);
+    };
+
+    const handleBuildGrid = () => {
+      state = buildStateFromControls(state);
+      refresh();
+    };
+
+    const handleClearGrid = () => {
+      state = {
+        ...state,
+        cells: clearCells(state.cells)
+      };
+      refresh();
+    };
+
+    const handleGridClick = event => {
+      const target = event.target;
+
+      if (!target.classList.contains('square')) {
+        return;
+      }
+
+      const rowIndex = Number(target.dataset.row);
+      const colIndex = Number(target.dataset.col);
+
+      state = {
+        ...state,
+        cells: paintCell(state.cells, rowIndex, colIndex, state.selectedColor)
+      };
+
+      refresh();
+    };
+
+    const handleColorChange = event => {
+      state = updateSelectedColor(state, event.target.value);
+    };
+
+    const handleLayoutChange = event => {
+      state = updateLayout(state, event.target.value);
+      refresh();
+    };
+
+    const handleSquareSizeChange = event => {
+      const newSize = clamp(toInteger(event.target.value, state.squareSize), 8, 80);
+      state = updateSquareSize(state, newSize);
+      refresh();
+    };
+
+    const bindEvents = () => {
+      elements.buildGridBtn.addEventListener('click', handleBuildGrid);
+      elements.clearGridBtn.addEventListener('click', handleClearGrid);
+      elements.exportPngBtn.addEventListener('click', exportGridAsPng);
+      elements.grid.addEventListener('click', handleGridClick);
+      elements.selectedColor.addEventListener('input', handleColorChange);
+      elements.layoutType.addEventListener('change', handleLayoutChange);
+      elements.squareSize.addEventListener('change', handleSquareSizeChange);
+    };
+
+    const syncControlsWithState = () => {
+      elements.rows.value = state.rows;
+      elements.cols.value = state.cols;
+      elements.squareSize.value = state.squareSize;
+      elements.layoutType.value = state.layout;
+      elements.selectedColor.value = state.selectedColor;
+    };
+
+    const init = () => {
+      syncControlsWithState();
+      bindEvents();
+      refresh();
+    };
+
+    init();
+  </script>
+</body>
+</html>
